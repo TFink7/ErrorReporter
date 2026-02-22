@@ -95,15 +95,20 @@ public class ErrorsController : ControllerBase
     [HttpGet("summary")]
     public async Task<IActionResult> GetSummary()
     {
-        var summary = await _db.ErrorReports
+        var grouped = await _db.ErrorReports
             .GroupBy(e => e.Service)
-            .Select(g => new ErrorSummaryDto(
-                g.Key,
-                g.Count(),
-                g.Max(e => (DateTime?)e.OccurredAt)
-            ))
+            .Select(g => new
+            {
+                Service = g.Key,
+                Count = g.Count(),
+                MostRecentOccurrence = g.Max(e => (DateTime?)e.OccurredAt)
+            })
             .OrderByDescending(s => s.Count)
             .ToListAsync();
+
+        var summary = grouped
+            .Select(g => new ErrorSummaryDto(g.Service, g.Count, g.MostRecentOccurrence))
+            .ToList();
 
         return Ok(summary);
     }

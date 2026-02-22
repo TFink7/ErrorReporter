@@ -3,4 +3,5 @@
     <File Path="docker-compose.yml" />
   </Folder>
   <Project Path="ErrorReporter/ErrorReporter.csproj" />
+  <Project Path="ErrorReporterTests/ErrorReporterTests.csproj" Id="aea78f16-74b5-4695-bb76-44fa6516e491" />
 </Solution>

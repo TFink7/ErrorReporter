@@ -38,6 +38,7 @@ public class ErrorsController : ControllerBase
             Service = dto.Service,
             Message = dto.Message,
             StackTrace = dto.StackTrace,
+            Severity = dto.Severity,
             OccurredAt = dto.OccurredAt,
             CreatedAt = DateTime.UtcNow
         };

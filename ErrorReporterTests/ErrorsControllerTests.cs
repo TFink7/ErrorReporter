@@ -38,6 +38,7 @@ public class ErrorsControllerTests
         {
             Service = "AuthService",
             Message = "Token expired",
+            Severity = Severity.Error,
             OccurredAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
@@ -58,7 +59,7 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(Create_CreatesAndReturnsErrorReport));
         var controller = new ErrorsController(db);
-        var dto = new CreateErrorReportDto("PaymentService", "Null reference exception", null, DateTime.UtcNow);
+        var dto = new CreateErrorReportDto("PaymentService", "Null reference exception", null, Severity.Error, DateTime.UtcNow);
 
         var result = await controller.Create(dto);
 
@@ -88,6 +89,7 @@ public class ErrorsControllerTests
         {
             Service = "AuthService",
             Message = "Token expired",
+            Severity = Severity.Error,
             OccurredAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
@@ -107,8 +109,8 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_ReturnsAllErrors_WhenNoFiltersApplied));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
@@ -125,8 +127,8 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_FiltersByService));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
@@ -144,8 +146,8 @@ public class ErrorsControllerTests
         using var db = CreateDb(nameof(GetAll_FiltersByDateRange));
         var inRange = DateTime.UtcNow;
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
@@ -164,9 +166,9 @@ public class ErrorsControllerTests
         using var db = CreateDb(nameof(GetAll_FiltersByServiceAndDateRange));
         var inRange = DateTime.UtcNow;
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = inRange, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
@@ -184,8 +186,8 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_ReturnsAll_WhenServiceIsEmpty));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
@@ -203,9 +205,9 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetSummary_GroupsAndCountsByService));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Critical, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 

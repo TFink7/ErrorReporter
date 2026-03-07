@@ -14,6 +14,8 @@ namespace ErrorReporter.Entities
 
         public string? StackTrace { get; set; }
 
+        public Severity Severity { get; set; }
+
         public DateTime OccurredAt { get; set; }
 
         public DateTime CreatedAt { get; set; }

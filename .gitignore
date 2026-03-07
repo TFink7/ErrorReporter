@@ -265,6 +265,7 @@ ServiceFabricBackup/
 *.mdf
 *.ldf
 *.ndf
+.claude
 
 # Business Intelligence projects
 *.rdl.data
@@ -361,3 +362,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+.claude/settings.local.json

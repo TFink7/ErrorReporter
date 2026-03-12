@@ -76,8 +76,14 @@ public class ErrorsController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] string? service,
         [FromQuery] DateTime? from,
-        [FromQuery] DateTime? to)
+        [FromQuery] DateTime? to,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20)
     {
+        if (page < 1) page = 1;
+        if (pageSize < 1) pageSize = 1;
+        if (pageSize > 100) pageSize = 100;
+
         var query = _db.ErrorReports.AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(service))
@@ -89,11 +95,22 @@ public class ErrorsController : ControllerBase
         if (to.HasValue)
             query = query.Where(e => e.OccurredAt <= to.Value);
 
+        var totalCount = await query.CountAsync();
+
         var errors = await query
             .OrderByDescending(e => e.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .ToListAsync();
 
-        return Ok(errors);
+        return Ok(new
+        {
+            data = errors,
+            page,
+            pageSize,
+            totalCount,
+            totalPages = (int)Math.Ceiling((double)totalCount / pageSize)
+        });
     }
 
     [HttpGet("summary")]

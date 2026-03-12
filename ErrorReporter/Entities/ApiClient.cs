@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ErrorReporter.Entities
 {
@@ -11,6 +12,7 @@ namespace ErrorReporter.Entities
         public required string Name { get; set; }
 
         [Required]
+        [JsonIgnore]
         public required string KeyHash { get; set; }
 
         public bool IsActive { get; set; } = true;

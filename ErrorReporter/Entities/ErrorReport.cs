@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace ErrorReporter.Entities
 {
@@ -21,6 +22,8 @@ namespace ErrorReporter.Entities
         public DateTime CreatedAt { get; set; }
 
         public int? ApiClientId { get; set; }
+
+        [JsonIgnore]
         public ApiClient? ApiClient { get; set; }
     }
 }

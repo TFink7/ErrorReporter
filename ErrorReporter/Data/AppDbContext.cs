@@ -10,5 +10,6 @@ namespace ErrorReporter.Data
         }
 
         public DbSet<ErrorReport> ErrorReports => Set<ErrorReport>();
+        public DbSet<ApiClient> ApiClients => Set<ApiClient>();
     }
 }

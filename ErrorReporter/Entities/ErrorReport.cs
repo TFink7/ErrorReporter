@@ -19,5 +19,8 @@ namespace ErrorReporter.Entities
         public DateTime OccurredAt { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public int? ApiClientId { get; set; }
+        public ApiClient? ApiClient { get; set; }
     }
 }

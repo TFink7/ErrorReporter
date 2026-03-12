@@ -33,6 +33,8 @@ public class ErrorsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateErrorReportDto dto)
     {
+        var clientId = HttpContext.Items.TryGetValue("ApiClientId", out var id) ? (int?)id : null;
+
         var error = new ErrorReport
         {
             Service = dto.Service,
@@ -40,7 +42,8 @@ public class ErrorsController : ControllerBase
             StackTrace = dto.StackTrace,
             Severity = dto.Severity,
             OccurredAt = dto.OccurredAt,
-            CreatedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow,
+            ApiClientId = clientId
         };
 
         _db.ErrorReports.Add(error);

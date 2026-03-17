@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(dotnet tool run dotnet-ef migrations add AddSeverity --project ErrorReporter/ErrorReporter.csproj)",
-      "Bash(where dotnet-ef)"
-    ]
-  }
-}

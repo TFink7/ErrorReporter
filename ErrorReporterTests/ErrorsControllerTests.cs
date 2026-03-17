@@ -2,6 +2,7 @@ using ErrorReporter.Controllers;
 using ErrorReporter.Data;
 using ErrorReporter.Dtos;
 using ErrorReporter.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -58,7 +59,10 @@ public class ErrorsControllerTests
     public async Task Create_CreatesAndReturnsErrorReport()
     {
         using var db = CreateDb(nameof(Create_CreatesAndReturnsErrorReport));
-        var controller = new ErrorsController(db);
+        var controller = new ErrorsController(db)
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
         var dto = new CreateErrorReportDto("PaymentService", "Null reference exception", null, Severity.Error, DateTime.UtcNow);
 
         var result = await controller.Create(dto);
@@ -115,11 +119,11 @@ public class ErrorsControllerTests
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll(null, null, null);
+        var result = await controller.GetAll(null, null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Equal(2, errors.Count);
+        var totalCount = (int)ok.Value!.GetType().GetProperty("totalCount")!.GetValue(ok.Value)!;
+        Assert.Equal(2, totalCount);
     }
 
     [Fact]
@@ -133,11 +137,11 @@ public class ErrorsControllerTests
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("AuthService", null, null);
+        var result = await controller.GetAll("AuthService", null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.All(errors, e => Assert.Equal("AuthService", e.Service));
+        var data = (IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!;
+        Assert.All(data, e => Assert.Equal("AuthService", e.Service));
     }
 
     [Fact]
@@ -152,12 +156,12 @@ public class ErrorsControllerTests
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll(null, inRange.AddDays(-1), inRange.AddDays(1));
+        var result = await controller.GetAll(null, inRange.AddDays(-1), inRange.AddDays(1), 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Single(errors);
-        Assert.Equal("A", errors[0].Service);
+        var data = ((IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!).ToList();
+        Assert.Single(data);
+        Assert.Equal("A", data[0].Service);
     }
 
     [Fact]
@@ -173,12 +177,12 @@ public class ErrorsControllerTests
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("AuthService", inRange.AddDays(-1), inRange.AddDays(1));
+        var result = await controller.GetAll("AuthService", inRange.AddDays(-1), inRange.AddDays(1), 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Single(errors);
-        Assert.Equal("AuthService", errors[0].Service);
+        var data = ((IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!).ToList();
+        Assert.Single(data);
+        Assert.Equal("AuthService", data[0].Service);
     }
 
     [Fact]
@@ -192,11 +196,11 @@ public class ErrorsControllerTests
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("   ", null, null);
+        var result = await controller.GetAll("   ", null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Equal(2, errors.Count);
+        var totalCount = (int)ok.Value!.GetType().GetProperty("totalCount")!.GetValue(ok.Value)!;
+        Assert.Equal(2, totalCount);
     }
 
     // GetSummary

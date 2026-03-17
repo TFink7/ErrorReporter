@@ -2,12 +2,14 @@
 using ErrorReporter.Dtos;
 using ErrorReporter.Entities;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 
 namespace ErrorReporter.Controllers;
 
 [ApiController]
 [Route("errors")]
+[EnableRateLimiting("PerApiKey")]
 public class ErrorsController : ControllerBase
 {
     private readonly AppDbContext _db;

@@ -1,5 +1,7 @@
+using System.Threading.RateLimiting;
 using ErrorReporter.Data;
 using ErrorReporter.Middleware;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using System.Text.Json.Serialization;
@@ -19,6 +21,20 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = 429;
+    options.AddPolicy("PerApiKey", context =>
+    {
+        var apiKey = context.Request.Headers["X-Api-Key"].ToString() ?? "anonymous";
+        return RateLimitPartition.GetFixedWindowLimiter(apiKey, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 60,
+            Window = TimeSpan.FromMinutes(1)
+        });
+    });
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,6 +47,7 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 
 app.UseMiddleware<ApiKeyMiddleware>();
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

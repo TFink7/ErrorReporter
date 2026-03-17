@@ -2,6 +2,7 @@ using ErrorReporter.Controllers;
 using ErrorReporter.Data;
 using ErrorReporter.Dtos;
 using ErrorReporter.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,6 +39,7 @@ public class ErrorsControllerTests
         {
             Service = "AuthService",
             Message = "Token expired",
+            Severity = Severity.Error,
             OccurredAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
@@ -57,8 +59,11 @@ public class ErrorsControllerTests
     public async Task Create_CreatesAndReturnsErrorReport()
     {
         using var db = CreateDb(nameof(Create_CreatesAndReturnsErrorReport));
-        var controller = new ErrorsController(db);
-        var dto = new CreateErrorReportDto("PaymentService", "Null reference exception", null, DateTime.UtcNow);
+        var controller = new ErrorsController(db)
+        {
+            ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() }
+        };
+        var dto = new CreateErrorReportDto("PaymentService", "Null reference exception", null, Severity.Error, DateTime.UtcNow);
 
         var result = await controller.Create(dto);
 
@@ -88,6 +93,7 @@ public class ErrorsControllerTests
         {
             Service = "AuthService",
             Message = "Token expired",
+            Severity = Severity.Error,
             OccurredAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
@@ -107,17 +113,17 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_ReturnsAllErrors_WhenNoFiltersApplied));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll(null, null, null);
+        var result = await controller.GetAll(null, null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Equal(2, errors.Count);
+        var totalCount = (int)ok.Value!.GetType().GetProperty("totalCount")!.GetValue(ok.Value)!;
+        Assert.Equal(2, totalCount);
     }
 
     [Fact]
@@ -125,17 +131,17 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_FiltersByService));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("AuthService", null, null);
+        var result = await controller.GetAll("AuthService", null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.All(errors, e => Assert.Equal("AuthService", e.Service));
+        var data = (IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!;
+        Assert.All(data, e => Assert.Equal("AuthService", e.Service));
     }
 
     [Fact]
@@ -144,18 +150,18 @@ public class ErrorsControllerTests
         using var db = CreateDb(nameof(GetAll_FiltersByDateRange));
         var inRange = DateTime.UtcNow;
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll(null, inRange.AddDays(-1), inRange.AddDays(1));
+        var result = await controller.GetAll(null, inRange.AddDays(-1), inRange.AddDays(1), 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Single(errors);
-        Assert.Equal("A", errors[0].Service);
+        var data = ((IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!).ToList();
+        Assert.Single(data);
+        Assert.Equal("A", data[0].Service);
     }
 
     [Fact]
@@ -164,19 +170,19 @@ public class ErrorsControllerTests
         using var db = CreateDb(nameof(GetAll_FiltersByServiceAndDateRange));
         var inRange = DateTime.UtcNow;
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = inRange, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = inRange, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = inRange.AddDays(-10), CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = inRange, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("AuthService", inRange.AddDays(-1), inRange.AddDays(1));
+        var result = await controller.GetAll("AuthService", inRange.AddDays(-1), inRange.AddDays(1), 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Single(errors);
-        Assert.Equal("AuthService", errors[0].Service);
+        var data = ((IEnumerable<ErrorReport>)ok.Value!.GetType().GetProperty("data")!.GetValue(ok.Value)!).ToList();
+        Assert.Single(data);
+        Assert.Equal("AuthService", data[0].Service);
     }
 
     [Fact]
@@ -184,17 +190,17 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetAll_ReturnsAll_WhenServiceIsEmpty));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "A", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "B", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "A", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "B", Message = "err", Severity = Severity.Info, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 
         var controller = new ErrorsController(db);
-        var result = await controller.GetAll("   ", null, null);
+        var result = await controller.GetAll("   ", null, null, 1, 20);
 
         var ok = Assert.IsType<OkObjectResult>(result);
-        var errors = Assert.IsType<List<ErrorReport>>(ok.Value);
-        Assert.Equal(2, errors.Count);
+        var totalCount = (int)ok.Value!.GetType().GetProperty("totalCount")!.GetValue(ok.Value)!;
+        Assert.Equal(2, totalCount);
     }
 
     // GetSummary
@@ -203,9 +209,9 @@ public class ErrorsControllerTests
     {
         using var db = CreateDb(nameof(GetSummary_GroupsAndCountsByService));
         db.ErrorReports.AddRange(
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "AuthService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
-            new ErrorReport { Service = "PaymentService", Message = "err", OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Critical, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "AuthService", Message = "err", Severity = Severity.Error, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow },
+            new ErrorReport { Service = "PaymentService", Message = "err", Severity = Severity.Warning, OccurredAt = DateTime.UtcNow, CreatedAt = DateTime.UtcNow }
         );
         await db.SaveChangesAsync();
 

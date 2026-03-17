@@ -3,6 +3,7 @@ using System;
 using ErrorReporter.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ErrorReporter.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260307174341_AddSeverity")]
+    partial class AddSeverity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22,34 +25,6 @@ namespace ErrorReporter.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("ErrorReporter.Entities.ApiClient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<string>("KeyHash")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ApiClients");
-                });
-
             modelBuilder.Entity("ErrorReporter.Entities.ErrorReport", b =>
                 {
                     b.Property<int>("Id")
@@ -57,9 +32,6 @@ namespace ErrorReporter.Migrations
                         .HasColumnType("integer");
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("ApiClientId")
-                        .HasColumnType("integer");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -83,18 +55,7 @@ namespace ErrorReporter.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApiClientId");
-
                     b.ToTable("ErrorReports");
-                });
-
-            modelBuilder.Entity("ErrorReporter.Entities.ErrorReport", b =>
-                {
-                    b.HasOne("ErrorReporter.Entities.ApiClient", "ApiClient")
-                        .WithMany()
-                        .HasForeignKey("ApiClientId");
-
-                    b.Navigation("ApiClient");
                 });
 #pragma warning restore 612, 618
         }

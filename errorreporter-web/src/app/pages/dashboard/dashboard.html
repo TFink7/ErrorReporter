@@ -1,0 +1,63 @@
+<div class="page-header">
+  <h1 class="page-title">Dashboard</h1>
+  <p class="page-subtitle">Error activity across your services</p>
+</div>
+
+@if (loading()) {
+  <div class="spinner" role="status" aria-label="Loading"></div>
+} @else if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+} @else {
+  <div class="stat-row">
+    <div class="card card-pad stat">
+      <span class="stat-label">Total errors</span>
+      <span class="stat-value">{{ totalErrors() }}</span>
+    </div>
+    <div class="card card-pad stat">
+      <span class="stat-label">Services reporting</span>
+      <span class="stat-value">{{ serviceCount() }}</span>
+    </div>
+    <div class="card card-pad stat">
+      <span class="stat-label">Last occurrence</span>
+      <span class="stat-value stat-value-sm">
+        {{ lastOccurrence() ? (lastOccurrence() | date: 'MMM d, y, HH:mm') : '—' }}
+      </span>
+    </div>
+  </div>
+
+  @if (summary()!.length === 0) {
+    <div class="card empty-state">
+      <h3>No errors reported yet</h3>
+      <p>Once services submit errors, per-service counts will appear here.</p>
+    </div>
+  } @else {
+    <div class="card table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Service</th>
+            <th class="num">Errors</th>
+            <th>Most recent</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of summary(); track row.service) {
+            <tr>
+              <td class="mono">{{ row.service }}</td>
+              <td class="num">{{ row.count }}</td>
+              <td class="muted">
+                {{ row.mostRecentOccurrence ? (row.mostRecentOccurrence | date: 'MMM d, y, HH:mm') : '—' }}
+              </td>
+              <td class="row-action">
+                <a class="btn btn-sm" [routerLink]="['/errors']" [queryParams]="{ service: row.service }">
+                  View errors
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

@@ -1,0 +1,46 @@
+<a routerLink="/errors" class="back-link">← Back to errors</a>
+
+@if (loading()) {
+  <div class="spinner" role="status" aria-label="Loading"></div>
+} @else if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+} @else if (report(); as r) {
+  <div class="page-header detail-header">
+    <div>
+      <h1 class="page-title">
+        <span class="badge" [class]="'badge ' + r.severity.toLowerCase()">{{ r.severity }}</span>
+        Error #{{ r.id }}
+      </h1>
+      <p class="page-subtitle mono">{{ r.service }}</p>
+    </div>
+    <button class="btn btn-danger" (click)="delete()" [disabled]="deleting()">
+      {{ deleting() ? 'Deleting…' : 'Delete' }}
+    </button>
+  </div>
+
+  <div class="card card-pad detail-section">
+    <h2 class="section-title">Message</h2>
+    <p class="detail-message">{{ r.message }}</p>
+  </div>
+
+  <div class="card card-pad detail-section">
+    <h2 class="section-title">Details</h2>
+    <dl class="detail-grid">
+      <dt>Occurred at</dt>
+      <dd>{{ r.occurredAt | date: 'MMM d, y, HH:mm:ss' }}</dd>
+      <dt>Reported at</dt>
+      <dd>{{ r.createdAt | date: 'MMM d, y, HH:mm:ss' }}</dd>
+      <dt>Client ID</dt>
+      <dd>{{ r.apiClientId ?? '—' }}</dd>
+    </dl>
+  </div>
+
+  <div class="card card-pad detail-section">
+    <h2 class="section-title">Stack trace</h2>
+    @if (r.stackTrace) {
+      <pre class="stack-trace">{{ r.stackTrace }}</pre>
+    } @else {
+      <p class="muted">No stack trace was submitted with this error.</p>
+    }
+  </div>
+}

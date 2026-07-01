@@ -1,0 +1,79 @@
+<div class="page-header">
+  <h1 class="page-title">API clients</h1>
+  <p class="page-subtitle">Register services and manage their API keys · requires the master key</p>
+</div>
+
+<form class="create-form card card-pad" (ngSubmit)="createClient()">
+  <div class="field create-field">
+    <label for="clientName">New client name</label>
+    <input
+      id="clientName"
+      class="input"
+      type="text"
+      name="clientName"
+      placeholder="e.g. PaymentService"
+      [(ngModel)]="newClientName"
+    />
+  </div>
+  <button type="submit" class="btn btn-primary" [disabled]="creating() || !newClientName.trim()">
+    {{ creating() ? 'Creating…' : 'Create client' }}
+  </button>
+</form>
+
+@if (createdClient(); as created) {
+  <div class="card card-pad key-reveal">
+    <div class="key-reveal-header">
+      <h2 class="section-title">API key for “{{ created.name }}”</h2>
+      <button class="btn btn-sm" (click)="dismissCreated()">Dismiss</button>
+    </div>
+    <p class="muted key-warning">{{ created.message }}</p>
+    <div class="key-row">
+      <code class="key-value">{{ created.apiKey }}</code>
+      <button class="btn btn-sm" (click)="copyKey()">{{ copied() ? 'Copied ✓' : 'Copy' }}</button>
+    </div>
+  </div>
+}
+
+@if (loading()) {
+  <div class="spinner" role="status" aria-label="Loading"></div>
+} @else if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+} @else if (clients(); as list) {
+  @if (list.length === 0) {
+    <div class="card empty-state">
+      <h3>No clients yet</h3>
+      <p>Create a client above to issue its API key.</p>
+    </div>
+  } @else {
+    <div class="card table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of list; track client.id) {
+            <tr>
+              <td class="mono">{{ client.name }}</td>
+              <td>
+                <span class="badge" [class.neutral]="!client.isActive" [class.active-badge]="client.isActive">
+                  {{ client.isActive ? 'Active' : 'Revoked' }}
+                </span>
+              </td>
+              <td class="muted">{{ client.createdAt | date: 'MMM d, y' }}</td>
+              <td class="row-action">
+                @if (client.isActive) {
+                  <button class="btn btn-sm btn-danger" (click)="revoke(client)">Revoke</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+}

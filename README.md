@@ -2,7 +2,7 @@
 
 A REST API for collecting and querying error reports from your applications. Services authenticate with API keys, submit errors, and you can filter, paginate, and summarize them through the API.
 
-Built with ASP.NET Core, Entity Framework Core, and PostgreSQL.
+Built with ASP.NET Core, Entity Framework Core, and PostgreSQL, with an Angular frontend.
 
 ## Features
 
@@ -44,6 +44,18 @@ Built with ASP.NET Core, Entity Framework Core, and PostgreSQL.
    ```bash
    dotnet run
    ```
+
+## Frontend
+
+An Angular app in `errorreporter-web/` provides a dashboard (per-service error counts), an errors browser with filtering and pagination, and API client management.
+
+```bash
+cd errorreporter-web
+npm install
+npm start
+```
+
+Open http://localhost:4200, then paste an API key on the Settings page — a client key to browse errors, or the master key to also manage clients. The key is stored in the browser's localStorage and sent as the `X-Api-Key` header. The API allows CORS from `http://localhost:4200` (see `Program.cs`).
 
 ## API Usage
 

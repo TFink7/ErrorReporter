@@ -1,0 +1,25 @@
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a routerLink="/dashboard" class="brand">
+        <span class="brand-mark"></span>
+        ErrorReporter
+      </a>
+
+      <nav class="nav">
+        <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a routerLink="/errors" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">Errors</a>
+        <a routerLink="/clients" routerLinkActive="active">Clients</a>
+      </nav>
+
+      <a routerLink="/settings" routerLinkActive="active" class="key-status">
+        <span class="key-dot" [class.connected]="apiKey.hasKey()"></span>
+        {{ apiKey.hasKey() ? 'API key set' : 'No API key' }}
+      </a>
+    </div>
+  </header>
+
+  <main class="content">
+    <router-outlet />
+  </main>
+</div>

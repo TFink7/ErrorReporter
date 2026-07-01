@@ -1,0 +1,42 @@
+.filters {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr auto auto;
+  gap: 12px;
+  align-items: end;
+  margin-bottom: 20px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.message-cell {
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  font-size: 13px;
+}
+
+.pagination-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+@media (max-width: 800px) {
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
+}

@@ -1,0 +1,39 @@
+<div class="page-header">
+  <h1 class="page-title">Settings</h1>
+  <p class="page-subtitle">Configure the API key used to talk to the ErrorReporter API</p>
+</div>
+
+<div class="card card-pad settings-card">
+  @if (apiKey.hasKey()) {
+    <div class="current-key">
+      <div>
+        <span class="field-label">Current key</span>
+        <code class="mono">{{ maskedKey }}</code>
+      </div>
+      <button class="btn btn-danger btn-sm" (click)="clear()">Remove</button>
+    </div>
+    <hr class="divider" />
+  }
+
+  <form (ngSubmit)="save()">
+    <div class="field">
+      <label for="apiKeyInput">{{ apiKey.hasKey() ? 'Replace API key' : 'API key' }}</label>
+      <input
+        id="apiKeyInput"
+        class="input"
+        type="password"
+        name="apiKeyInput"
+        placeholder="Paste your API key"
+        autocomplete="off"
+        [(ngModel)]="keyInput"
+      />
+    </div>
+    <p class="muted hint">
+      The key is stored only in this browser and sent as the <code>X-Api-Key</code> header.
+      Use a client key to browse errors, or the master key to also manage clients.
+    </p>
+    <button type="submit" class="btn btn-primary" [disabled]="!keyInput.trim()">
+      {{ saved() ? 'Saved ✓' : 'Save key' }}
+    </button>
+  </form>
+</div>

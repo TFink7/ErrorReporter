@@ -1,0 +1,95 @@
+<div class="page-header">
+  <h1 class="page-title">Errors</h1>
+  <p class="page-subtitle">Browse and filter reported errors</p>
+</div>
+
+<form class="filters" (ngSubmit)="applyFilters()">
+  <div class="field">
+    <label for="service">Service</label>
+    <input
+      id="service"
+      class="input"
+      type="text"
+      name="service"
+      placeholder="e.g. PaymentService"
+      [(ngModel)]="service"
+    />
+  </div>
+  <div class="field">
+    <label for="from">From</label>
+    <input id="from" class="input" type="date" name="from" [(ngModel)]="from" />
+  </div>
+  <div class="field">
+    <label for="to">To</label>
+    <input id="to" class="input" type="date" name="to" [(ngModel)]="to" />
+  </div>
+  <div class="field">
+    <label for="pageSize">Page size</label>
+    <select id="pageSize" class="select" name="pageSize" [(ngModel)]="pageSize" (ngModelChange)="load(1)">
+      <option [ngValue]="10">10</option>
+      <option [ngValue]="20">20</option>
+      <option [ngValue]="50">50</option>
+    </select>
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="btn btn-primary">Apply</button>
+    @if (hasFilters) {
+      <button type="button" class="btn" (click)="clearFilters()">Clear</button>
+    }
+  </div>
+</form>
+
+@if (loading()) {
+  <div class="spinner" role="status" aria-label="Loading"></div>
+} @else if (error()) {
+  <div class="alert alert-error">{{ error() }}</div>
+} @else if (result()) {
+  @if (result()!.data.length === 0) {
+    <div class="card empty-state">
+      <h3>No errors found</h3>
+      <p>{{ hasFilters ? 'Try adjusting or clearing the filters.' : 'Nothing has been reported yet.' }}</p>
+    </div>
+  } @else {
+    <div class="card table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Severity</th>
+            <th>Service</th>
+            <th>Message</th>
+            <th>Occurred</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (report of result()!.data; track report.id) {
+            <tr class="clickable" (click)="open(report)">
+              <td><span class="badge" [class]="'badge ' + report.severity.toLowerCase()">{{ report.severity }}</span></td>
+              <td class="mono">{{ report.service }}</td>
+              <td class="message-cell">{{ report.message }}</td>
+              <td class="muted nowrap">{{ report.occurredAt | date: 'MMM d, y, HH:mm' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <span class="muted">
+        {{ result()!.totalCount }} error{{ result()!.totalCount === 1 ? '' : 's' }}
+        · page {{ result()!.page }} of {{ result()!.totalPages }}
+      </span>
+      <div class="pagination-buttons">
+        <button class="btn btn-sm" [disabled]="result()!.page <= 1" (click)="load(result()!.page - 1)">
+          Previous
+        </button>
+        <button
+          class="btn btn-sm"
+          [disabled]="result()!.page >= result()!.totalPages"
+          (click)="load(result()!.page + 1)"
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  }
+}
